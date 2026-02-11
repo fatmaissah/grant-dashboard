@@ -156,25 +156,25 @@ with tab2:
         submitted = st.form_submit_button("💾 Save")
 
     if submitted:
-    if selected == "New Grant":
-        # sanitize dates
-        deadline_val = deadline.isoformat() if deadline else None
-        submitted_val = submitted_date.isoformat() if submitted_date else None
-
-        c.execute("""
-            INSERT INTO grants
-            (title, funder, funding_amount, currency, theme, status, deadline,
-             submitted_date, description, organization_involved, key_personnel, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            title, funder, funding_amount, currency, theme, status,
-            deadline_val, submitted_val,
-            description, organization_involved, key_personnel,
-            datetime.now().isoformat()
-        ))
-        conn.commit()
-
-        st.success(" New grant added")
+        if selected == "New Grant":
+            # sanitize dates
+            deadline_val = deadline.isoformat() if deadline else None
+            submitted_val = submitted_date.isoformat() if submitted_date else None
+    
+            c.execute("""
+                INSERT INTO grants
+                (title, funder, funding_amount, currency, theme, status, deadline,
+                 submitted_date, description, organization_involved, key_personnel, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                title, funder, funding_amount, currency, theme, status,
+                deadline_val, submitted_val,
+                description, organization_involved, key_personnel,
+                datetime.now().isoformat()
+            ))
+            conn.commit()
+    
+            st.success(" New grant added")
 
         # reset form values
         for key in [
@@ -266,6 +266,7 @@ with tab4:
     else:
 
         st.info("No audit trail entries yet.")
+
 
 
 

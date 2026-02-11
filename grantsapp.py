@@ -1,4 +1,4 @@
-!pip install streamlit
+pip install streamlit
 
 import streamlit as st
 import pandas as pd
@@ -239,4 +239,5 @@ with tab4:
         recent_actions = audit_df.head(10)
         st.table(recent_actions[["grant_id", "action", "user", "timestamp"]])
     else:
+
         st.info("No audit trail entries yet.")

@@ -185,7 +185,8 @@ with tab2:
                 ))
                 conn.commit()
                 st.success("✅ Grant updated")
-                st.experimental_rerun()
+                st.rerun()
+
 
     if selected != "New Grant":
         if st.button("🗑️ Delete Grant"):
@@ -241,6 +242,7 @@ with tab4:
     else:
 
         st.info("No audit trail entries yet.")
+
 
 
 

@@ -169,7 +169,8 @@ with tab2:
                 ))
                 conn.commit()
                 st.success("✅ New grant added")
-                st.experimental_rerun()
+                st.rerun()
+
             else:
                 grant_id = int(grant_data["id"])
                 c.execute("""
@@ -240,5 +241,6 @@ with tab4:
     else:
 
         st.info("No audit trail entries yet.")
+
 
 

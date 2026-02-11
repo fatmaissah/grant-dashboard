@@ -139,21 +139,21 @@ with tab2:
         grant_data = df[df.title == selected].iloc[0].to_dict()
 
     with st.form("grant_form"):
-    title = st.text_input("Title", grant_data.get("title", ""))
-    funder = st.text_input("Funder", grant_data.get("funder", ""))
-    funding_amount = st.number_input("Funding Amount", value=float(grant_data.get("funding_amount", 0)))
-    currency = st.selectbox("Currency", ["USD", "GBP", "EUR", "TZS"], index=0)
-    theme = st.text_input("Theme", grant_data.get("theme", ""))
-    status = st.selectbox("Status", ["Draft", "Submitted", "Funded"], index=0)
-    deadline = st.date_input("Deadline", grant_data.get("deadline", datetime.today()))
-    submitted_date = st.date_input("Submitted Date", grant_data.get("submitted_date", datetime.today()))
-    organization_involved = st.text_area("Organizations Involved", grant_data.get("organization_involved", ""))
-    description = st.text_area("Description", grant_data.get("description", ""))
-    key_personnel = st.text_area("Key Personnel", grant_data.get("key_personnel", ""))
+        title = st.text_input("Title", grant_data.get("title", ""))
+        funder = st.text_input("Funder", grant_data.get("funder", ""))
+        funding_amount = st.number_input("Funding Amount", value=float(grant_data.get("funding_amount", 0)))
+        currency = st.selectbox("Currency", ["USD", "GBP", "EUR", "TZS"], index=0)
+        theme = st.text_input("Theme", grant_data.get("theme", ""))
+        status = st.selectbox("Status", ["Draft", "Submitted", "Funded"], index=0)
+        deadline = st.date_input("Deadline", grant_data.get("deadline", datetime.today()))
+        submitted_date = st.date_input("Submitted Date", grant_data.get("submitted_date", datetime.today()))
+        organization_involved = st.text_area("Organizations Involved", grant_data.get("organization_involved", ""))
+        description = st.text_area("Description", grant_data.get("description", ""))
+        key_personnel = st.text_area("Key Personnel", grant_data.get("key_personnel", ""))
 
-    uploaded_file = st.file_uploader("Attach Proposal (PDF/DOC)", type=["pdf", "docx"])
-
-    submitted = st.form_submit_button("💾 Save")
+        uploaded_file = st.file_uploader("Attach Proposal (PDF/DOC)", type=["pdf", "docx"])
+    
+        submitted = st.form_submit_button("💾 Save")
 
 if submitted and selected == "New Grant":
     # sanitize dates
@@ -252,6 +252,7 @@ with tab4:
     else:
 
         st.info("No audit trail entries yet.")
+
 
 
 

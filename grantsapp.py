@@ -181,21 +181,21 @@ if submitted and selected == "New Grant":
 
     st.rerun()
 
-            else:
-                grant_id = int(grant_data["id"])
-                c.execute("""
-                    UPDATE grants SET
-                    title=?, funder=?, funding_amount=?, currency=?, theme=?, status=?,
-                    deadline=?, submitted_date=?, description=?, organization_involved=?, key_personnel=?
-                    WHERE id=?
-                """, (
-                    title, funder, funding_amount, currency, theme, status,
-                    deadline.isoformat(), submitted_date.isoformat(),
-                    description, organization_involved, key_personnel, grant_id
-                ))
-                conn.commit()
-                st.success("✅ Grant updated")
-                st.rerun()
+        else:
+            grant_id = int(grant_data["id"])
+            c.execute("""
+                UPDATE grants SET
+                title=?, funder=?, funding_amount=?, currency=?, theme=?, status=?,
+                deadline=?, submitted_date=?, description=?, organization_involved=?, key_personnel=?
+                WHERE id=?
+            """, (
+                title, funder, funding_amount, currency, theme, status,
+                deadline.isoformat(), submitted_date.isoformat(),
+                description, organization_involved, key_personnel, grant_id
+            ))
+            conn.commit()
+            st.success("✅ Grant updated")
+            st.rerun()
 
 
     if selected != "New Grant":
@@ -252,6 +252,7 @@ with tab4:
     else:
 
         st.info("No audit trail entries yet.")
+
 
 
 

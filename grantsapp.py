@@ -155,11 +155,12 @@ with tab2:
     
         submitted = st.form_submit_button("💾 Save")
 
-    if submitted and selected == "New Grant":
+    if submitted:
+    if selected == "New Grant":
         # sanitize dates
         deadline_val = deadline.isoformat() if deadline else None
         submitted_val = submitted_date.isoformat() if submitted_date else None
-    
+
         c.execute("""
             INSERT INTO grants
             (title, funder, funding_amount, currency, theme, status, deadline,
@@ -172,31 +173,44 @@ with tab2:
             datetime.now().isoformat()
         ))
         conn.commit()
-    
-        st.success("✅ New grant added")
-    
+
+        st.success(" New grant added")
+
         # reset form values
-        for key in ["title","funder","funding_amount","theme","organization_involved","description","key_personnel","deadline","submitted_date"]:
+        for key in [
+            "title", "funder", "funding_amount", "theme",
+            "organization_involved", "description", "key_personnel",
+            "deadline", "submitted_date"
+        ]:
             st.session_state[key] = ""
-    
+
         st.rerun()
 
-    else:
-        grant_id = int(grant_data["id"])
-        c.execute("""
-            UPDATE grants SET
-            title=?, funder=?, funding_amount=?, currency=?, theme=?, status=?,
-            deadline=?, submitted_date=?, description=?, organization_involved=?, key_personnel=?
-            WHERE id=?
-        """, (
-            title, funder, funding_amount, currency, theme, status,
-            deadline.isoformat(), submitted_date.isoformat(),
-            description, organization_involved, key_personnel, grant_id
-        ))
-        conn.commit()
-        st.success("✅ Grant updated")
-        st.rerun()
+    elif selected == "Edit Grant":
+        grant_id = grant_data.get("id")
+        if grant_id is None:
+            st.error(" No grant ID found for update")
+        else:
+            try:
+                grant_id = int(grant_id)
+                deadline_val = deadline.isoformat() if deadline else None
+                submitted_val = submitted_date.isoformat() if submitted_date else None
 
+                c.execute("""
+                    UPDATE grants SET
+                        title=?, funder=?, funding_amount=?, currency=?, theme=?, status=?,
+                        deadline=?, submitted_date=?, description=?, organization_involved=?, key_personnel=?
+                    WHERE id=?
+                """, (
+                    title, funder, funding_amount, currency, theme, status,
+                    deadline_val, submitted_val,
+                    description, organization_involved, key_personnel, grant_id
+                ))
+                conn.commit()
+                st.success(" Grant updated")
+                st.rerun()
+            except (TypeError, ValueError):
+                st.error(" Invalid grant ID")
 
     if selected != "New Grant":
         if st.button("🗑️ Delete Grant"):
@@ -252,6 +266,7 @@ with tab4:
     else:
 
         st.info("No audit trail entries yet.")
+
 
 
 

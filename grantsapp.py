@@ -70,12 +70,12 @@ count = c.execute("SELECT COUNT(*) FROM grants").fetchone()[0]
 if count == 0:
     sample_grants = [
         ("Kilimo Sauti: Audio Advisory Systems, Transforming Climate Data into Actionable Farmer Knowledge in Tanzania", "Data.org", 115000, "USD", "AI & Climate", "Submitted",
-         datetime(2026, 1, 08).isoformat(), datetime(2026, 1, 08).isoformat(),
+         datetime(2026, 1, 8).isoformat(), datetime(2026, 1, 8).isoformat(),
          "The use of the talking books to inform farmers on weather and market.",
          "dLab, Amplio Ghana", "Dr Mahadia, Amplio", datetime.now().isoformat()),
 
         ("Climate Variability and Livestock Productivity in Tanzania: Evidence from Manyara and Arusha Regions", "Structural Transformation and Economic Growth-STEG", 100000, "EUR", "Agriculture(Livestock)& Data", "Draft",
-         datetime(2026, 2, 02).isoformat(), datetime(2026, 2, 02).isoformat(),
+         datetime(2026, 2, 2).isoformat(), datetime(2026, 2, 2).isoformat(),
          "Impact of climate variability on livestock production.",
          "UDSM, dLab", "Dr Mahadia, Dr Sawe", datetime.now().isoformat()),
 
@@ -266,6 +266,7 @@ with tab4:
     else:
 
         st.info("No audit trail entries yet.")
+
 
 
 

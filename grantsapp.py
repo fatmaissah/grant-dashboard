@@ -119,10 +119,10 @@ with tab1:
 
     st.subheader("⏰ Upcoming Deadlines (30 Days)")
     upcoming = df[(df.deadline >= datetime.today()) & (df.deadline <= datetime.today() + timedelta(days=30))]
-    st.dataframe(upcoming, use_container_width=True)
+    st.dataframe(upcoming, width="stretch")
 
     st.subheader("📁 All Grants")
-    st.dataframe(df, use_container_width=True)
+    st.dataframe(df, width="stretch")
 
 # =====================================================
 # TAB 2: ADD / EDIT / DELETE
@@ -240,4 +240,5 @@ with tab4:
     else:
 
         st.info("No audit trail entries yet.")
+
 

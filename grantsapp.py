@@ -1,4 +1,3 @@
-pip install streamlit
 
 import streamlit as st
 import pandas as pd
@@ -241,3 +240,4 @@ with tab4:
     else:
 
         st.info("No audit trail entries yet.")
+

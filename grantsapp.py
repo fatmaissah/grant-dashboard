@@ -69,20 +69,20 @@ conn.commit()
 count = c.execute("SELECT COUNT(*) FROM grants").fetchone()[0]
 if count == 0:
     sample_grants = [
-        ("AI for Climate-Smart Irrigation", "UKRI", 250000, "GBP", "AI & Climate", "Submitted",
-         datetime(2026, 3, 20).isoformat(), datetime(2026, 2, 5).isoformat(),
-         "Machine learning and IoT for optimizing irrigation for smallholder farmers.",
-         "DLab Tanzania", "PI: Dr A. Jongo | Data Scientist: T. Mer | Email: ajongo@dlab.or.tz", datetime.now().isoformat()),
+        ("Kilimo Sauti: Audio Advisory Systems, Transforming Climate Data into Actionable Farmer Knowledge in Tanzania", "Data.org", 115000, "USD", "AI & Climate", "Submitted",
+         datetime(2026, 1, 08).isoformat(), datetime(2026, 1, 08).isoformat(),
+         "The use of the talking books to inform farmers on weather and market.",
+         "dLab, Amplio Ghana", "Dr Mahadia, Amplio", datetime.now().isoformat()),
 
-        ("Digital Health Analytics", "Bill & Melinda Gates Foundation", 150000, "USD", "Health Data", "Draft",
-         datetime(2026, 4, 15).isoformat(), None,
-         "Using big data to track health trends in Tanzania.",
-         "University of Dar es Salaam", "PI: Dr S. Mwanga | Data Analyst: T. Mer | Email: smwanga@uni.tz", datetime.now().isoformat()),
+        ("Climate Variability and Livestock Productivity in Tanzania: Evidence from Manyara and Arusha Regions", "Structural Transformation and Economic Growth-STEG", 100000, "EUR", "Agriculture(Livestock)& Data", "Draft",
+         datetime(2026, 2, 02).isoformat(), datetime(2026, 2, 02).isoformat(),
+         "Impact of climate variability on livestock production.",
+         "UDSM, dLab", "Dr Mahadia, Dr Sawe", datetime.now().isoformat()),
 
-        ("Sustainable Fisheries Project", "FAO", 200000, "USD", "Blue Economy", "Funded",
-         datetime(2026, 1, 30).isoformat(), datetime(2026, 1, 10).isoformat(),
-         "Improving coastal fisheries management using data-driven models.",
-         "Coastal Research Institute", "PI: Dr N. Mkapa | Data Scientist: T. Mer | Email: nmkapa@uni.tz", datetime.now().isoformat())
+        ("High learning curriculum on the era of artificial intelligence", "Spencer Foundation", 500000, "USD", "Education & AI", "Draft",
+         datetime(2026, 2, 24).isoformat(), None,
+         "Improving education in the era of AI.",
+         "udsm, dLab", "Dr Mahadia, Dr Mahundi", datetime.now().isoformat())
     ]
 
     c.executemany("""
@@ -266,6 +266,7 @@ with tab4:
     else:
 
         st.info("No audit trail entries yet.")
+
 
 
 

@@ -1,19 +1,17 @@
-
-
 import streamlit as st
 import pandas as pd
 import sqlite3
 from datetime import datetime, timedelta
 import os
 
-# -----------------------------
-# Page config
-# -----------------------------
+# =====================================================
+# PAGE CONFIG
+# =====================================================
 st.set_page_config(page_title="Grant Tracking Dashboard", layout="wide")
 
-# -----------------------------
-# Paths & DB setup
-# -----------------------------
+# =====================================================
+# DATABASE SETUP
+# =====================================================
 DB_NAME = "grants.db"
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -22,7 +20,7 @@ conn = sqlite3.connect(DB_NAME, check_same_thread=False)
 c = conn.cursor()
 
 # -----------------------------
-# Ensure tables exist
+# CREATE TABLES IF NOT EXISTS
 # -----------------------------
 c.execute("""
 CREATE TABLE IF NOT EXISTS grants (
@@ -64,54 +62,43 @@ CREATE TABLE IF NOT EXISTS attachments (
 
 conn.commit()
 
-# -----------------------------
-# Insert sample data if empty
-# -----------------------------
-count = c.execute("SELECT COUNT(*) FROM grants").fetchone()[0]
-if count == 0:
-    sample_grants = [
-        ("Kilimo Sauti: Audio Advisory Systems, Transforming Climate Data into Actionable Farmer Knowledge in Tanzania", "Data.org", 115000, "USD", "AI & Climate", "Submitted",
-         datetime(2026, 1, 8).isoformat(), datetime(2026, 1, 8).isoformat(),
-         "The use of the talking books to inform farmers on weather and market.",
-         "dLab, Amplio Ghana", "Dr Mahadia, Amplio", datetime.now().isoformat()),
-
-        ("Climate Variability and Livestock Productivity in Tanzania: Evidence from Manyara and Arusha Regions", "Structural Transformation and Economic Growth-STEG", 100000, "EUR", "Agriculture(Livestock)& Data", "Draft",
-         datetime(2026, 2, 2).isoformat(), datetime(2026, 2, 2).isoformat(),
-         "Impact of climate variability on livestock production.",
-         "UDSM, dLab", "Dr Mahadia, Dr Sawe", datetime.now().isoformat()),
-
-        ("High learning curriculum on the era of artificial intelligence", "Spencer Foundation", 500000, "USD", "Education & AI", "Draft",
-         datetime(2026, 2, 24).isoformat(), None,
-         "Improving education in the era of AI.",
-         "udsm, dLab", "Dr Mahadia, Dr Mahundi", datetime.now().isoformat())
-    ]
-
-    c.executemany("""
-    INSERT INTO grants (title, funder, funding_amount, currency, theme, status, deadline,
-    submitted_date, description, organization_involved, key_personnel, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, sample_grants)
+# =====================================================
+# HELPER FUNCTIONS
+# =====================================================
+def log_action(grant_id, action):
+    c.execute("""
+        INSERT INTO audit_trail (grant_id, action, timestamp, user)
+        VALUES (?, ?, ?, ?)
+    """, (grant_id, action, datetime.now().isoformat(), "Admin"))
     conn.commit()
 
-# -----------------------------
-# Load data
-# -----------------------------
-df = pd.read_sql("SELECT * FROM grants", conn)
-df["deadline"] = pd.to_datetime(df["deadline"], errors="coerce")
-df["submitted_date"] = pd.to_datetime(df["submitted_date"], errors="coerce")
+def load_data():
+    df = pd.read_sql("SELECT * FROM grants", conn)
+    if not df.empty:
+        df["deadline"] = pd.to_datetime(df["deadline"], errors="coerce")
+        df["submitted_date"] = pd.to_datetime(df["submitted_date"], errors="coerce")
+    return df
 
-# -----------------------------
-# Tabs
-# -----------------------------
+# =====================================================
+# LOAD DATA
+# =====================================================
+df = load_data()
+
+# =====================================================
+# TABS
+# =====================================================
 tab1, tab2, tab3, tab4 = st.tabs(
     ["📊 Dashboard", "➕ Add / Edit Grant", "📈 Analytics", "🕒 Audit Trail"]
 )
 
 # =====================================================
-# TAB 1: DASHBOARD
+# TAB 1: DASHBOARD (DELETE FROM TABLE)
 # =====================================================
 with tab1:
     st.title("📊 Grant Dashboard")
+
+    df = load_data()
+
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Total Grants", len(df))
     col2.metric("Draft", len(df[df.status == "Draft"]))
@@ -119,129 +106,133 @@ with tab1:
     col4.metric("Funded", len(df[df.status == "Funded"]))
 
     st.subheader("⏰ Upcoming Deadlines (30 Days)")
-    upcoming = df[(df.deadline >= datetime.today()) & (df.deadline <= datetime.today() + timedelta(days=30))]
-    st.dataframe(upcoming, width="stretch")
+    if not df.empty:
+        upcoming = df[
+            (df.deadline >= datetime.today()) &
+            (df.deadline <= datetime.today() + timedelta(days=30))
+        ]
+        st.dataframe(upcoming, use_container_width=True)
 
     st.subheader("📁 All Grants")
-    st.dataframe(df, width="stretch")
+
+    if not df.empty:
+        st.dataframe(df, use_container_width=True)
+
+        st.markdown("### 🗑️ Delete Grant")
+
+        selected_id = st.selectbox("Select Grant ID", df["id"])
+
+        confirm = st.checkbox("I confirm deletion")
+
+        if st.button("Delete Selected Grant"):
+            if confirm:
+                c.execute("DELETE FROM grants WHERE id=?", (int(selected_id),))
+                conn.commit()
+                log_action(int(selected_id), "Deleted")
+                st.success("Grant deleted successfully.")
+                st.rerun()
+            else:
+                st.warning("Please confirm deletion.")
+    else:
+        st.info("No grants available.")
 
 # =====================================================
-# TAB 2: ADD / EDIT / DELETE
+# TAB 2: ADD / EDIT
 # =====================================================
 with tab2:
     st.title("➕ Add / Edit Grant")
 
-    grant_titles = ["New Grant"] + df.title.dropna().tolist()
+    df = load_data()
+    grant_titles = ["New Grant"] + df.title.tolist() if not df.empty else ["New Grant"]
     selected = st.selectbox("Select Grant", grant_titles)
 
-    if selected == "New Grant":
-        grant_data = {}
-    else:
+    grant_data = {}
+    if selected != "New Grant":
         grant_data = df[df.title == selected].iloc[0].to_dict()
 
     with st.form("grant_form"):
         title = st.text_input("Title", grant_data.get("title", ""))
         funder = st.text_input("Funder", grant_data.get("funder", ""))
         funding_amount = st.number_input("Funding Amount", value=float(grant_data.get("funding_amount", 0)))
-        currency = st.selectbox("Currency", ["USD", "GBP", "EUR", "TZS"], index=0)
+        currency = st.selectbox("Currency", ["USD", "EUR", "GBP", "TZS"])
         theme = st.text_input("Theme", grant_data.get("theme", ""))
-        status = st.selectbox("Status", ["Draft", "Submitted", "Funded"], index=0)
+        status = st.selectbox("Status", ["Draft", "Submitted", "Funded"])
         deadline = st.date_input("Deadline", grant_data.get("deadline", datetime.today()))
         submitted_date = st.date_input("Submitted Date", grant_data.get("submitted_date", datetime.today()))
         organization_involved = st.text_area("Organizations Involved", grant_data.get("organization_involved", ""))
         description = st.text_area("Description", grant_data.get("description", ""))
         key_personnel = st.text_area("Key Personnel", grant_data.get("key_personnel", ""))
 
-        uploaded_file = st.file_uploader("Attach Proposal (PDF/DOC)", type=["pdf", "docx"])
-    
         submitted = st.form_submit_button("💾 Save")
 
     if submitted:
+        deadline_val = deadline.isoformat() if deadline else None
+        submitted_val = submitted_date.isoformat() if submitted_date else None
+
         if selected == "New Grant":
-            # sanitize dates
-            deadline_val = deadline.isoformat() if deadline else None
-            submitted_val = submitted_date.isoformat() if submitted_date else None
-    
             c.execute("""
                 INSERT INTO grants
-                (title, funder, funding_amount, currency, theme, status, deadline,
-                 submitted_date, description, organization_involved, key_personnel, created_at)
+                (title, funder, funding_amount, currency, theme, status,
+                 deadline, submitted_date, description,
+                 organization_involved, key_personnel, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 title, funder, funding_amount, currency, theme, status,
-                deadline_val, submitted_val,
-                description, organization_involved, key_personnel,
+                deadline_val, submitted_val, description,
+                organization_involved, key_personnel,
                 datetime.now().isoformat()
             ))
             conn.commit()
-    
-            st.success(" New grant added")
 
-        # reset form values
-        for key in [
-            "title", "funder", "funding_amount", "theme",
-            "organization_involved", "description", "key_personnel",
-            "deadline", "submitted_date"
-        ]:
-            st.session_state[key] = ""
+            new_id = c.lastrowid
+            log_action(new_id, "Created")
+            st.success("Grant added successfully.")
+
+        else:
+            grant_id = int(grant_data["id"])
+            c.execute("""
+                UPDATE grants SET
+                    title=?, funder=?, funding_amount=?, currency=?,
+                    theme=?, status=?, deadline=?, submitted_date=?,
+                    description=?, organization_involved=?, key_personnel=?
+                WHERE id=?
+            """, (
+                title, funder, funding_amount, currency,
+                theme, status, deadline_val, submitted_val,
+                description, organization_involved, key_personnel,
+                grant_id
+            ))
+            conn.commit()
+            log_action(grant_id, "Updated")
+            st.success("Grant updated successfully.")
 
         st.rerun()
-
-    elif selected == "Edit Grant":
-        grant_id = grant_data.get("id")
-        if grant_id is None:
-            st.error(" No grant ID found for update")
-        else:
-            try:
-                grant_id = int(grant_id)
-                deadline_val = deadline.isoformat() if deadline else None
-                submitted_val = submitted_date.isoformat() if submitted_date else None
-
-                c.execute("""
-                    UPDATE grants SET
-                        title=?, funder=?, funding_amount=?, currency=?, theme=?, status=?,
-                        deadline=?, submitted_date=?, description=?, organization_involved=?, key_personnel=?
-                    WHERE id=?
-                """, (
-                    title, funder, funding_amount, currency, theme, status,
-                    deadline_val, submitted_val,
-                    description, organization_involved, key_personnel, grant_id
-                ))
-                conn.commit()
-                st.success(" Grant updated")
-                st.rerun()
-            except (TypeError, ValueError):
-                st.error(" Invalid grant ID")
-
-    if selected != "New Grant":
-        if st.button("🗑️ Delete Grant"):
-            c.execute("DELETE FROM grants WHERE id=?", (grant_data["id"],))
-            conn.commit()
-            st.success("Grant deleted")
-            st.experimental_rerun()
 
 # =====================================================
 # TAB 3: ANALYTICS
 # =====================================================
 with tab3:
     st.title("📈 Analytics")
+
+    df = load_data()
+
     if not df.empty:
         st.subheader("Funding by Status")
         st.bar_chart(df.groupby("status")["funding_amount"].sum())
 
-        st.subheader("Funding Trend Over Time")
+        st.subheader("Funding Trend by Year")
         trend = df.groupby(df.deadline.dt.year)["funding_amount"].sum()
         st.line_chart(trend)
 
-        st.subheader("Top Funders by Total Amount")
+        st.subheader("Top Funders")
         funders = df.groupby("funder")["funding_amount"].sum().sort_values(ascending=False)
         st.bar_chart(funders)
 
         st.subheader("Average Funding by Theme")
-        themes = df.groupby("theme")["funding_amount"].mean().sort_values(ascending=False)
+        themes = df.groupby("theme")["funding_amount"].mean()
         st.bar_chart(themes)
     else:
-        st.info("No grants available yet. Add some grants to see analytics.")
+        st.info("No data available.")
 
 # =====================================================
 # TAB 4: AUDIT TRAIL
@@ -252,19 +243,14 @@ with tab4:
     audit_df = pd.read_sql("SELECT * FROM audit_trail", conn)
 
     if not audit_df.empty:
-        # Convert timestamps to datetime
         audit_df["timestamp"] = pd.to_datetime(audit_df["timestamp"], errors="coerce")
-
-        # Sort by most recent
         audit_df = audit_df.sort_values("timestamp", ascending=False)
 
-        st.subheader("Full Audit Trail")
-        st.dataframe(audit_df, width="stretch")
+        st.subheader("Full Audit Log")
+        st.dataframe(audit_df, use_container_width=True)
 
         st.subheader("Recent Actions")
-        recent_actions = audit_df.head(10)
-        st.table(recent_actions[["grant_id", "action", "user", "timestamp"]])
+        st.table(audit_df.head(10)[["grant_id", "action", "user", "timestamp"]])
     else:
+        st.info("No audit records yet.")
 
-
-        st.info("No audit trail entries yet.")
